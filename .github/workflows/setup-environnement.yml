@@ -14,5 +14,17 @@ jobs:
 
       - name: Installer Node.js
         uses: actions/setup-node@v3
-            with:
-              node-version: '18'
+        with:
+          node-version: '18'
+      
+      - name: Installer python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Vérifier les installations
+        run: |
+          echo "Node.js version:"
+          node -v
+          echo "Python version:"
+          python --version
