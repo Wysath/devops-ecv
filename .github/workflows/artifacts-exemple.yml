@@ -24,14 +24,14 @@ jobs:
           name: fichier-generer
           path: output.txt
 
-    use-artifacts:
-      runs-on: ubuntu-latest
-      needs: generate-file
-      steps:
-        - name: Télécharger l'artefact stocké
-          uses: actions/download-artifact@v3
-          with:
-            name: fichier-generer
-            path: ./artifacts/
-        - name: Afficher le contenu du fichier téléchargé
-          run: cat ./artifacts/output.txt
+  use-artifacts:
+    runs-on: ubuntu-latest
+    needs: generate-file
+    steps:
+      - name: Télécharger l'artefact stocké
+        uses: actions/download-artifact@v3
+        with:
+          name: fichier-generer
+          path: ./artifacts/
+      - name: Afficher le contenu du fichier téléchargé
+        run: cat ./artifacts/output.txt
