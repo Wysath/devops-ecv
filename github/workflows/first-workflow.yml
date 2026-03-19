@@ -1,0 +1,13 @@
+name: Mon Workflow
+
+on: 
+  push:
+    branches: 
+      - main
+
+jobs:
+  afficher-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Afficher un message
+        run: echo "Hello, World!"
