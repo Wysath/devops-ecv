@@ -1,10 +1,11 @@
 name: Afficher le message du commit
 
 on:
-  commit: 
-  workflow_dispatch:
+  push:
     branches:
       - main
+  workflow_dispatch:
+  
 
 jobs:
   afficher-commit:
