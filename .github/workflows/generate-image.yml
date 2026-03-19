@@ -23,11 +23,19 @@ jobs:
         id: generate
         run: |
           COMMIT_MSG="${{ steps.commit.outputs.message }}"
-          RESPONSE=$(curl -s -X POST "https://api.dynapictures.com/api/v1/generate" \
+          PAYLOAD=$(jq -n --arg text "$COMMIT_MSG" '{params:[{name:"text1",text:$text,color:"#333",backgroundColor:"#f9f9f9",borderColor:"#ddd",borderWidth:"1px",borderRadius:"5px",opacity:1}]}')
+          RESPONSE=$(curl -s -X POST "https://api.dynapictures.com/designs/${{ secrets.DYNAPICTURES_UID }}" \
             -H "Authorization: Bearer ${{ secrets.DYNAPICTURES }}" \
             -H "Content-Type: application/json" \
-            -d "{\"prompt\": \"$COMMIT_MSG\"}")
-          IMAGE_URL=$(echo $RESPONSE | jq -r '.image_url')
+            -d "$PAYLOAD")
+          IMAGE_URL=$(echo "$RESPONSE" | jq -r '.image_url // .imageUrl // .url // .data.image_url // .data.imageUrl // empty')
+
+          if [ -z "$IMAGE_URL" ]; then
+            echo "DynaPictures response did not contain an image URL"
+            echo "$RESPONSE"
+            exit 1
+          fi
+
           echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
 
       - name: Sauvegarder l'image générée
