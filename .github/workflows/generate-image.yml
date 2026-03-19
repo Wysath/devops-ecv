@@ -32,7 +32,7 @@ jobs:
 
       - name: Télcharger l'image générée
         uses: actions/download-artifact@v3
-          with:
+        with:
             name: generated-image 
             path: ./images/
         run:
