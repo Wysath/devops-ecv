@@ -11,4 +11,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Afficher le message du commit
-        run: echo "Le message du commit est : ${{ github.event.head_commit.message }}"
+        run: echo "Le message du commit est ${{ github.event.head_commit.message }}"
