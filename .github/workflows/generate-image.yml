@@ -1,0 +1,67 @@
+name: Generer une image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    branches:
+      - main
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloner le dépôt github
+        uses: actions/checkout@v4
+
+      - name: Get commit message
+        id: commit
+        run: echo "message=$(git log -1 --pretty=%B)" >> $GITHUB_OUTPUT
+
+      - name: Generate image with DynaPictures API
+        id: generate
+        run: |
+          COMMIT_MSG="${{ steps.commit.outputs.message }}"
+          RESPONSE=$(curl -s -X POST "https://api.dynapictures.com/api/v1/generate" \
+            -H "Authorization: Bearer ${{ secrets.DYNAPICTURES }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"prompt\": \"$COMMIT_MSG\"}")
+          IMAGE_URL=$(echo $RESPONSE | jq -r '.image_url')
+          echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
+
+      - name: Download and save image
+        run: |
+          mkdir -p images
+          TIMESTAMP=$(date +%s)
+          curl -o "images/image-$TIMESTAMP.png" "${{ steps.generate.outputs.image_url }}"
+
+      - name: Generate index.html
+        run: |
+          cat > images/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Generated Images</title>
+            <style>
+              body { font-family: Arial; margin: 20px; background: #f5f5f5; }
+              .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+              img { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+            </style>
+          </head>
+          <body>
+            <h1>🎨 Generated Images</h1>
+            <div class="gallery" id="gallery"></div>
+            <script>
+              const images = document.querySelectorAll('img[src*="image-"]');
+              document.getElementById('gallery').innerHTML = Array.from(images).map(img => `<img src="${img.src}">`).join('');
+            </script>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./images
