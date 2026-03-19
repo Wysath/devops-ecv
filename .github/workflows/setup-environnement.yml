@@ -1,0 +1,18 @@
+name: Installer les outils
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  installer-dependances:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cloner le dépôt github
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v3
+            with:
+              node-version: '18'
