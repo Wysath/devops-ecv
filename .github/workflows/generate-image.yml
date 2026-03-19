@@ -31,7 +31,7 @@ jobs:
           echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
 
       - name: Télecharger l'image générée
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
             name: generated-image 
             path: ./images/
@@ -67,7 +67,7 @@ jobs:
           EOF
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./images
