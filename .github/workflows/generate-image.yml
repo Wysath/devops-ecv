@@ -31,13 +31,14 @@ jobs:
           echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
 
       - name: Télcharger l'image générée
+        uses: actions/download-artifact@v3
+          with:
+            name: generated-image 
+            path: ./images/
         run:
           TIMESTAMP=$(date +%s)
           curl -o "images/image-$TIMESTAMP.png" "${{ steps.generate.outputs.image_url }}"
-        uses: actions/download-artifact@v3
-        with:
-          name: generated-image 
-          path: ./images/
+        
 
       - name: Generate index.html
         run: |
