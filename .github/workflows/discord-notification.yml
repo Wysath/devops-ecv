@@ -34,7 +34,6 @@ jobs:
           name: image-generee
           path: ./artifacts
           if_no_artifact_found: fail
-          branch: main
           run_id: ${{ github.event.workflow_run.id }}
 
       - name: Télécharger l'artefact image-generee (manuel)
