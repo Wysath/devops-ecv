@@ -86,27 +86,22 @@ jobs:
 
       - name: Generate index.html
         run: |
-          cat > images/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Generated Images</title>
-            <style>
-              body { font-family: Arial; margin: 20px; background: #f5f5f5; }
-              .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-              img { max-width: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-            </style>
-          </head>
-          <body>
-            <h1>🎨 Generated Images</h1>
-            <div class="gallery" id="gallery"></div>
-            <script>
-              const images = document.querySelectorAll('img[src*="image-"]');
-              document.getElementById('gallery').innerHTML = Array.from(images).map(img => `<img src="${img.src}">`).join('');
-            </script>
-          </body>
-          </html>
-          EOF
+          {
+            echo '<!DOCTYPE html>'
+            echo '<html><head><meta charset="utf-8">'
+            echo '<title>Generated Images</title>'
+            echo '<style>body{font-family:Arial;margin:20px;background:#f5f5f5}.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}img{max-width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}</style>'
+            echo '</head><body>'
+            echo '<h1>Generated Images</h1>'
+            echo '<div class="gallery">'
+            for f in images/image-*.png; do
+              [ -e "$f" ] || continue
+              base="$(basename "$f")"
+              echo "<img src=\"$base\" alt=\"$base\">"
+            done
+            echo '</div>'
+            echo '</body></html>'
+          } > images/index.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
