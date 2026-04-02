@@ -23,7 +23,9 @@ jobs:
         id: generate
         run: |
           COMMIT_MSG="${{ steps.commit.outputs.message }}"
-          PAYLOAD=$(printf '%s\n' "$COMMIT_MSG" | jq -Rs '{"params":[{"name":"text1","text":.,"color":"#333","backgroundColor":"#f9f9f9","borderColor":"#ddd","borderWidth":"1px","borderRadius":"5px","opacity":1}]}')
+          PAYLOAD=$(jq -n \
+            --arg text "$COMMIT_MSG" \
+            '{params:[{name:"text1",text:$text,color:"#333",backgroundColor:"#f9f9f9",borderColor:"#ddd",borderWidth:"1px",borderRadius:"5px",opacity:1}]}')
           RESPONSE=$(curl -s -X POST "https://api.dynapictures.com/designs/${{ secrets.DYNAPICTURES_UID }}" \
             -H "Authorization: Bearer ${{ secrets.DYNAPICTURES }}" \
             -H "Content-Type: application/json" \
