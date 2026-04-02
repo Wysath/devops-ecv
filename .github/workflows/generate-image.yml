@@ -42,7 +42,7 @@ jobs:
 
           # Call API, keep response body separate, and capture HTTP status code.
           HTTP_STATUS=$(curl -sS -o response.json -w "%{http_code}" \
-            -X POST "https://api.dynapictures.com/designs/${{ secrets.DYNAPICTURES_UID }}/generate" \
+            -X POST "https://api.dynapictures.com/designs/${{ secrets.DYNAPICTURES_UID }}" \
             -H "Authorization: Bearer ${{ secrets.DYNAPICTURES }}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
