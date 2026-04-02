@@ -82,6 +82,13 @@ jobs:
           mkdir -p images
           TIMESTAMP=$(date +%s)
           curl -o "images/image-$TIMESTAMP.png" "${{ steps.generate.outputs.image_url }}"
+
+      - name: Uploader l'artefact de l'image
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-generee
+          path: images/image-*.png
+          if-no-files-found: error
         
 
       - name: Generate index.html

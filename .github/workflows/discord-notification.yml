@@ -1,0 +1,80 @@
+name: Envoyer un message Discord
+
+on:
+  workflow_run:
+    workflows: ["Generer une image"]
+    types: [completed]
+  workflow_dispatch:
+
+jobs:
+  send-discord-message:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Cloner le repo github
+        uses: actions/checkout@v4
+
+      - name: Récupérer le message du commit
+        id: get_commit_message
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "MESSAGE=${{ github.event.workflow_run.head_commit.message }}" >> "$GITHUB_ENV"
+          else
+            echo "MESSAGE=$(git log -1 --pretty=%B)" >> "$GITHUB_ENV"
+          fi
+
+      - name: Télécharger l'artefact image-generee (workflow_run)
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: generate-image.yml
+          name: image-generee
+          path: ./artifacts
+          if_no_artifact_found: fail
+          branch: main
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: Télécharger l'artefact image-generee (manuel)
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: generate-image.yml
+          name: image-generee
+          path: ./artifacts
+          if_no_artifact_found: fail
+          branch: main
+
+      - name: Extraire le nom du fichier image
+        run: |
+          set -euo pipefail
+          IMAGE_NAME=$(ls ./artifacts | head -n 1)
+          if [ -z "$IMAGE_NAME" ]; then
+            echo "Aucune image trouvee dans l'artefact"
+            exit 1
+          fi
+          echo "IMAGE_NAME=$IMAGE_NAME" >> "$GITHUB_ENV"
+
+      - name: Construire l'URL de l'image
+        run: |
+          set -euo pipefail
+          REPO_NAME="${{ github.event.repository.name }}"
+          OWNER="${{ github.repository_owner }}"
+          IMAGE_URL="https://${OWNER}.github.io/${REPO_NAME}/${IMAGE_NAME}"
+          echo "IMAGE_URL=$IMAGE_URL" >> "$GITHUB_ENV"
+
+      - name: Envoyer la notification Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          PAYLOAD=$(jq -n \
+            --arg msg "$MESSAGE" \
+            --arg url "$IMAGE_URL" \
+            '{content: ("Nouveau commit: " + $msg + "\nImage generee: " + $url)}')
+
+          curl -sS -X POST "$DISCORD_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD"
