@@ -22,7 +22,6 @@ jobs:
       - name: Generate image with DynaPictures API
         id: generate
         run: |
-          set -euo pipefail
 
           COMMIT_MSG="${{ steps.commit.outputs.message }}"
           PAYLOAD=$(jq -n --arg text "$COMMIT_MSG" '{
