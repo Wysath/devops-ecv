@@ -22,19 +22,52 @@ jobs:
       - name: Generate image with DynaPictures API
         id: generate
         run: |
+          set -euo pipefail
+
           COMMIT_MSG="${{ steps.commit.outputs.message }}"
-          PAYLOAD=$(jq -n \
-            --arg text "$COMMIT_MSG" \
-            '{params:[{name:"text1",text:$text,color:"#333",backgroundColor:"#f9f9f9",borderColor:"#ddd",borderWidth:"1px",borderRadius:"5px",opacity:1}]}')
-          RESPONSE=$(curl -s -X POST "https://api.dynapictures.com/designs/${{ secrets.DYNAPICTURES_UID }}" \
+          PAYLOAD=$(jq -n --arg text "$COMMIT_MSG" '{
+            params: [
+              {
+                name: "text1",
+                text: $text,
+                color: "#333",
+                backgroundColor: "#f9f9f9",
+                borderColor: "#ddd",
+                borderWidth: "1px",
+                borderRadius: "5px",
+                opacity: 1
+              }
+            ]
+          }')
+
+          # Call API, keep response body separate, and capture HTTP status code.
+          HTTP_STATUS=$(curl -sS -o response.json -w "%{http_code}" \
+            -X POST "https://api.dynapictures.com/designs/${{ secrets.DYNAPICTURES_UID }}" \
             -H "Authorization: Bearer ${{ secrets.DYNAPICTURES }}" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
-          IMAGE_URL=$(echo "$RESPONSE" | jq -r '.image_url // .imageUrl // .url // .data.image_url // .data.imageUrl // empty')
+
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "DynaPictures API request failed (HTTP $HTTP_STATUS)"
+            echo "Response body:"
+            cat response.json
+            exit 1
+          fi
+
+          # Only parse with jq if the response is valid JSON.
+          if ! jq -e . >/dev/null 2>&1 < response.json; then
+            echo "DynaPictures response was not valid JSON"
+            echo "Response body:"
+            cat response.json
+            exit 1
+          fi
+
+          IMAGE_URL=$(jq -r '.image_url // .imageUrl // .url // .data.image_url // .data.imageUrl // empty' response.json)
 
           if [ -z "$IMAGE_URL" ]; then
             echo "DynaPictures response did not contain an image URL"
-            echo "$RESPONSE"
+            echo "Response JSON:"
+            cat response.json
             exit 1
           fi
 
