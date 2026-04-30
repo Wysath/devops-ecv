@@ -1,58 +1,63 @@
-name: Ajouter un Commentaire avec Image sur un Commit
+name: Ajouter un Commentaire Automatique sur un Commit
 
-# Déclenchement après un push sur main
+# 1. Le workflow attend que "Generer une image" soit complètement terminé
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Generer une image"] # Doit correspondre exactement au "name" de ton 1er fichier
+    types:
+      - completed
 
-# Permissions nécessaires pour lire le contenu et ajouter un commentaire sur le commit
 permissions:
   contents: write
 
 jobs:
   comment-commit:
     runs-on: ubuntu-latest
+    # On exécute ce job uniquement si la génération d'image a réussi
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
     steps:
-      # 1. Cloner le dépôt pour avoir accès à l'historique git
       - name: Cloner le dépôt
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Nécessaire pour récupérer correctement le message du commit
+          fetch-depth: 0
 
-      # 2. Télécharger l'artefact contenant l'image générée
+      # 2. Télécharge l'artefact contenant l'image générée depuis l'autre workflow[cite: 2]
       - name: Télécharger l'image générée
         uses: actions/download-artifact@v4
         with:
           name: image-generee
           path: ./artifacts/
+          run-id: ${{ github.event.workflow_run.id }} 
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3. Récupérer le message du dernier commit (comme dans l'exemple 7)
-      - name: Récupérer le message du dernier commit
+      # 3. Récupérer le message et l'ID du commit qui a déclenché le tout
+      - name: Récupérer le message du commit
         id: get_commit_message
-        run: echo "MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+        run: |
+          COMMIT_SHA=${{ github.event.workflow_run.head_sha }}
+          echo "MESSAGE=$(git log -1 --pretty=%B $COMMIT_SHA)" >> $GITHUB_ENV
+          echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
 
-      # 4. Récupérer dynamiquement le nom de l'image et construire son URL
+      # 4. Génère l'URL de l'image hébergée sur GitHub[cite: 2]
       - name: Construction Automatique de l'URL de l'Image
         run: |
-          # Récupère dynamiquement le premier fichier image trouvé dans le dossier
           IMAGE_FILE=$(ls ./artifacts/ | head -n 1)
           
-          # Génère l'URL raw de l'image hébergée sur GitHub
-          IMAGE_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/images/$IMAGE_FILE"
-          
-          # Stocke l'URL dans la variable d'environnement
+          # Ton 1er workflow déploie l'image sur la branche "gh-pages" (via actions-gh-pages)
+          # On pointe donc l'URL brute vers cette branche pour qu'elle soit visible !
+          IMAGE_URL="https://raw.githubusercontent.com/${{ github.repository }}/gh-pages/$IMAGE_FILE"
           echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_ENV
 
-      # 5. Ajout du Commentaire sur le Commit
+      # 5. Ajoute le message du commit et l'image générée dans le commentaire[cite: 2]
       - name: Ajouter un commentaire sur le commit
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }} # Sécurisé avec secrets.GITHUB_TOKEN[cite: 2]
           script: |
             github.rest.repos.createCommitComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              commit_sha: context.sha,
+              commit_sha: "${{ env.COMMIT_SHA }}",
               body: " **Nouvelle Image Générée !**\n\n **Message du Commit :**\n${{ env.MESSAGE }}\n\n **Aperçu de l'image :**\n![Image générée](${{ env.IMAGE_URL }})\n\n _Ce message est généré automatiquement par GitHub Actions._"
             });
