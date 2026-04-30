@@ -3,7 +3,7 @@ name: Ajouter un Commentaire Automatique sur un Commit
 # 1. Le workflow attend que "Generer une image" soit complètement terminé
 on:
   workflow_run:
-    workflows: ["Generer une image"] # Doit correspondre exactement au "name" de ton 1er fichier
+    workflows: ["Generer une image"] 
     types:
       - completed
 
