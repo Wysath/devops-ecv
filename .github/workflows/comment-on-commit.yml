@@ -1,0 +1,58 @@
+name: Ajouter un Commentaire avec Image sur un Commit
+
+# Déclenchement après un push sur main
+on:
+  push:
+    branches:
+      - main
+
+# Permissions nécessaires pour lire le contenu et ajouter un commentaire sur le commit
+permissions:
+  contents: write
+
+jobs:
+  comment-commit:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Cloner le dépôt pour avoir accès à l'historique git
+      - name: Cloner le dépôt
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Nécessaire pour récupérer correctement le message du commit
+
+      # 2. Télécharger l'artefact contenant l'image générée
+      - name: Télécharger l'image générée
+        uses: actions/download-artifact@v4
+        with:
+          name: image-generee
+          path: ./artifacts/
+
+      # 3. Récupérer le message du dernier commit (comme dans l'exemple 7)
+      - name: Récupérer le message du dernier commit
+        id: get_commit_message
+        run: echo "MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+
+      # 4. Récupérer dynamiquement le nom de l'image et construire son URL
+      - name: Construction Automatique de l'URL de l'Image
+        run: |
+          # Récupère dynamiquement le premier fichier image trouvé dans le dossier
+          IMAGE_FILE=$(ls ./artifacts/ | head -n 1)
+          
+          # Génère l'URL raw de l'image hébergée sur GitHub
+          IMAGE_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/images/$IMAGE_FILE"
+          
+          # Stocke l'URL dans la variable d'environnement
+          echo "IMAGE_URL=$IMAGE_URL" >> $GITHUB_ENV
+
+      # 5. Ajout du Commentaire sur le Commit
+      - name: Ajouter un commentaire sur le commit
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: " **Nouvelle Image Générée !**\n\n **Message du Commit :**\n${{ env.MESSAGE }}\n\n **Aperçu de l'image :**\n![Image générée](${{ env.IMAGE_URL }})\n\n _Ce message est généré automatiquement par GitHub Actions._"
+            });
