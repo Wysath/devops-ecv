@@ -1,7 +1,7 @@
 # Devops-ecv
 
 <!-- Partie 1 : Badges Shields.io -->
-![Dernière version](https://img.shields.io/github/v/release/Wysath/devops-ecv?label=version&style=flat-square)
+![Taille du repo](https://img.shields.io/github/repo-size/Wysath/devops-ecv?style=flat-square)
 ![Contributeurs](https://img.shields.io/github/contributors/Wysath/devops-ecv?style=flat-square)
 ![Étoiles](https://img.shields.io/github/stars/Wysath/devops-ecv?style=flat-square)
 ![Dernier commit](https://img.shields.io/github/last-commit/Wysath/devops-ecv?style=flat-square)
