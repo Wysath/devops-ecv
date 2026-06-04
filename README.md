@@ -1,5 +1,21 @@
 # Devops-ecv
- 
+
+<!-- Partie 1 : Badges Shields.io -->
+![Dernière version](https://img.shields.io/github/v/release/Wysath/devops-ecv?label=version&style=flat-square)
+![Contributeurs](https://img.shields.io/github/contributors/Wysath/devops-ecv?style=flat-square)
+![Étoiles](https://img.shields.io/github/stars/Wysath/devops-ecv?style=flat-square)
+![Dernier commit](https://img.shields.io/github/last-commit/Wysath/devops-ecv?style=flat-square)
+![Workflows](https://img.shields.io/badge/workflows-8-blue?style=flat-square)
+
+<!-- Partie 2 : Badges GitHub Actions par workflow -->
+[![First Workflow](https://github.com/Wysath/devops-ecv/actions/workflows/first-workflow.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/first-workflow.yml)
+[![Commit Message](https://github.com/Wysath/devops-ecv/actions/workflows/commit-message.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/commit-message.yml)
+[![Setup Environnement](https://github.com/Wysath/devops-ecv/actions/workflows/setup-environnement.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/setup-environnement.yml)
+[![Artifacts Exemple](https://github.com/Wysath/devops-ecv/actions/workflows/artifacts-exemple.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/artifacts-exemple.yml)
+[![Generate Image](https://github.com/Wysath/devops-ecv/actions/workflows/generate-image.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/generate-image.yml)
+[![Comment on Commit](https://github.com/Wysath/devops-ecv/actions/workflows/comment-on-commit.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/comment-on-commit.yml)
+[![Discord Notification](https://github.com/Wysath/devops-ecv/actions/workflows/discord-notification.yml/badge.svg)](https://github.com/Wysath/devops-ecv/actions/workflows/discord-notification.yml)
+
 Dépôt d’exercices DevOps (ECV) sur **GitHub Actions**.
 
 ## Où regarder pour corriger
